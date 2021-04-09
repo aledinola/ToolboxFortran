@@ -64,10 +64,10 @@ module mod_utilities
     
     !Module procedures
 	
-	!-----------------------------------------------------------------!
+    !-----------------------------------------------------------------!
     !   PRINT MATRIX 
     !-----------------------------------------------------------------!
-	subroutine printMatrix_r(x,file_name)
+    subroutine printMatrix_r(x,file_name)
     ! This subroutine prints matrix (2-dim array) x on file file_name.
     ! If filename is not present, matrix is displayed on the screen.
         
@@ -112,8 +112,8 @@ module mod_utilities
     endif
     
     end subroutine printMatrix_r
-	!-----------------------------------------------------------------!
-	subroutine printMatrix_i(x,file_name)
+    !-----------------------------------------------------------------!
+    subroutine printMatrix_i(x,file_name)
     ! This subroutine prints matrix (2-dim array) x on file file_name.
     ! If filename is not present, matrix is displayed on the screen.
         
