@@ -134,7 +134,7 @@ module mod_utilities
     
         do i = 1,size(x,1)
 		    do j = 1,size(x,2)
-			    write(unitno,'(f12.6)',advance='no'), x(i,j)
+			    write(unitno,'(I6)',advance='no'), x(i,j)
 		    enddo
 		    write(unitno,*) " "
         enddo
@@ -147,7 +147,7 @@ module mod_utilities
         !Write integer matrix x(row,col) into a txt file
         do i = 1,size(x,1)
 		    do j = 1,size(x,2)
-			    write(*,'(f12.6)',advance='no'), x(i,j)
+			    write(*,'(I6)',advance='no'), x(i,j)
 		    enddo
 		    write(*,*) " "
         enddo
