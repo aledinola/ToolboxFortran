@@ -101,11 +101,11 @@ module mod_utilities
         
         !Display matrix x(row,col) on screen
         do i = 1,size(x,1)
-		    do j = 1,size(x,2)    
-			    write(*,'(f12.6," ")',advance='no'), x(i,j)
-                write(*,'(" ")', advance = 'no')
-		    enddo
-		    write(*,"()")  
+		do j = 1,size(x,2)
+			write(*,'(f12.6," ")',advance='no'), x(i,j)
+                	write(*,'(" ")', advance = 'no')
+		enddo
+		write(*,"()")  
         enddo
         write(*,*) " "
         
