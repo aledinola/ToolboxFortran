@@ -78,7 +78,7 @@ module mod_utilities
     integer :: unitno, ierr, i, j
     
     if (present(file_name)) then
-        !Write 1 dim array x into a txt file
+        !Write matrix x(row,col) into a txt file
         open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
         if (ierr/=0) then
             write(*,*) "Error: printMatrix: cannot open file"
@@ -99,7 +99,7 @@ module mod_utilities
     
     else
         
-        !Display on screen
+        !Display matrix x(row,col) on screen
         do i = 1,size(x,1)
 		    do j = 1,size(x,2)    
 			    write(*,'(f12.6," ")',advance='no'), x(i,j)
@@ -124,7 +124,7 @@ module mod_utilities
     integer :: unitno, ierr, i, j
     
     if (present(file_name)) then
-        !Write 1 dim array x into a txt file
+        !Write integer matrix x(row,col) into a txt file
         open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
         if (ierr/=0) then
             write(*,*) "Error: printMatrix: cannot open file"
@@ -144,7 +144,7 @@ module mod_utilities
     
     else
         
-        !Display on screen
+        !Write integer matrix x(row,col) into a txt file
         do i = 1,size(x,1)
 		    do j = 1,size(x,2)
 			    write(*,'(f12.6)',advance='no'), x(i,j)
