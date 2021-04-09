@@ -68,50 +68,92 @@ module mod_utilities
     !   PRINT MATRIX 
     !-----------------------------------------------------------------!
 	subroutine printMatrix_r(x,file_name)
+    ! This subroutine prints matrix (2-dim array) x on file file_name.
+    ! If filename is not present, matrix is displayed on the screen.
         
     implicit none
     !Declare inputs:
     real(8), intent(in) :: x(:,:)
-    character(len=*), intent(in) :: file_name
-    integer :: unitno, irow, ierr
+    character(len=*), intent(in), optional :: file_name
+    integer :: unitno, ierr, i, j
     
-    !Write 1 dim array x into a txt file
-    open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
-    if (ierr/=0) then
-        write(*,*) "Error: write1dim: cannot open file"
-		pause
-		stop 
+    if (present(file_name)) then
+        !Write 1 dim array x into a txt file
+        open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
+        if (ierr/=0) then
+            write(*,*) "Error: printMatrix: cannot open file"
+		    pause
+		    stop 
+        endif
+    
+        do i = 1,size(x,1)
+		    do j = 1,size(x,2)    
+			    write(unitno,'(f12.6," ")',advance='no'), x(i,j)
+                write(unitno,'(" ")', advance = 'no')
+		    enddo
+		    write(unitno,"()")  
+        enddo
+        write(unitno,*) " "
+    
+        close(unitno)
+    
+    else
+        
+        !Display on screen
+        do i = 1,size(x,1)
+		    do j = 1,size(x,2)    
+			    write(*,'(f12.6," ")',advance='no'), x(i,j)
+                write(*,'(" ")', advance = 'no')
+		    enddo
+		    write(*,"()")  
+        enddo
+        write(*,*) " "
+        
     endif
-    
-    do irow = 1,size(x,1)
-        write(unitno,*) x(irow,:)
-    enddo
-    
-    close(unitno)
     
     end subroutine printMatrix_r
 	!-----------------------------------------------------------------!
 	subroutine printMatrix_i(x,file_name)
+    ! This subroutine prints matrix (2-dim array) x on file file_name.
+    ! If filename is not present, matrix is displayed on the screen.
         
     implicit none
     !Declare inputs:
     integer, intent(in) :: x(:,:)
-    character(len=*), intent(in) :: file_name
-    integer :: unitno, irow, ierr
+    character(len=*), intent(in), optional :: file_name
+    integer :: unitno, ierr, i, j
     
-    !Write 1 dim array x into a txt file
-    open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
-    if (ierr/=0) then
-        write(*,*) "Error: write1dim: cannot open file"
-		pause
-		stop 
+    if (present(file_name)) then
+        !Write 1 dim array x into a txt file
+        open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
+        if (ierr/=0) then
+            write(*,*) "Error: printMatrix: cannot open file"
+		    pause
+		    stop 
+        endif
+    
+        do i = 1,size(x,1)
+		    do j = 1,size(x,2)
+			    write(unitno,'(f12.6)',advance='no'), x(i,j)
+		    enddo
+		    write(unitno,*) " "
+        enddo
+        write(unitno,*) " "
+    
+        close(unitno)
+    
+    else
+        
+        !Display on screen
+        do i = 1,size(x,1)
+		    do j = 1,size(x,2)
+			    write(*,'(f12.6)',advance='no'), x(i,j)
+		    enddo
+		    write(*,*) " "
+        enddo
+        write(*,*) " "
+        
     endif
-    
-    do irow = 1,size(x,1)
-        write(unitno,*) x(irow,:)
-    enddo
-    
-    close(unitno)
     
     end subroutine printMatrix_i
     
