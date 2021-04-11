@@ -896,6 +896,15 @@ contains
     real(8) :: cdf
     ! Locals:
     real(8) :: paretocdf
+    
+    ! Check inputs:
+    if (emin <=0 ) then
+        call myerror("bddparetocdf: emin cannot be negative!")
+    endif
+    
+    if (emax <= emin ) then
+        call myerror("bddparetocdf: emax cannot be less than emin!")
+    endif
 
     ! Body of Func
     paretocdf = 1.0d0 - (emin/eval)**shape
