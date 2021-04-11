@@ -967,7 +967,7 @@ contains
     !-------------------------------------------------------------------------------!
     ! Purpose: approximating first-order autoregressive process with Markov chain
     !
-    ! y_t = rho * y_(t-1) + u_t
+    ! y_t = mu + rho * y_(t-1) + u_t
     !
     ! u_t is a Gaussian white noise process with standard deviation sigma.
     !
