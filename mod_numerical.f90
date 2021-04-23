@@ -656,7 +656,8 @@ contains
     ! in the interval (a, b).
     ! Source: https://en.wikipedia.org/wiki/Golden-section_search
     ! Adapted to Fortran90 from: https://github.com/QuantEcon
-    
+    ! Originally written by Arnau Valladares-Esteban.
+    ! Modified by Alessandro Di Nola.
     !---------------------------------------------------!
     !INPUTS
     interface
