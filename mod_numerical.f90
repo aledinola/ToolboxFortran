@@ -196,7 +196,48 @@ contains
     my_closest = minloc(aux, dim=1)
     end function my_closest
     !===============================================================================!
+    
+    subroutine unique(x, x_u,ind_u)
+	! Purpose: Find unique values in array x 
+	! Return a smaller array with only unique values and corresponding (last) indeces 
+	! Identical to matlab unique with 'last' option 
 
+	implicit none
+
+	real(8), intent(in) :: x(:)
+	real(8), intent(out), allocatable :: x_u(:)
+	integer, intent(out), allocatable :: ind_u(:) 
+	! Local variables
+	integer :: i, n, i_u
+
+	! Execution 
+
+	n = size(x)
+
+	allocate(x_u(n),ind_u(n))
+
+	x_u(1) = x(1)
+	i_u = 1
+
+	do i=2,n
+		if (x(i)>x(i-1)) then
+			ind_u(i_u) = i-1
+			x_u(i_u+1) = x(i) 
+			i_u = i_u+1
+		endif 
+	enddo
+	
+	ind_u(i_u) = n
+	
+	write(*,*) "i_u = ", i_u 
+	
+	! Outputs
+	x_u = x_u(1:i_u)
+	ind_u = ind_u(1:i_u)
+
+    end subroutine unique
+    !===============================================================================!
+    
     function my_ss(tmatrix,gp)
     ! Purpose: STEADY STATE MARKOV CHAIN
     ! Originally written by Arnau Valladares-Esteban
