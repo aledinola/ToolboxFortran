@@ -6,7 +6,7 @@ module mod_numerical
     ! https://sites.google.com/site/greygordon/code
     ! Numerical recipes in F90: http://numerical.recipes/
     ! http://karibzhanov.com/
-    ! Last update: 2021-04-03
+    ! Last update: 2021-05-20
     !=========================================================================!
     
     ! USE other modules 
@@ -32,10 +32,10 @@ module mod_numerical
     public :: linint, locate
     
     ! Discretization:
-    public :: paretojo, bddparetocdf, tauchen
+    public :: discretize_pareto, bddparetocdf, tauchen
     
     ! Percentiles, Gini and Lorenz curve:
-    public :: quantili, calculate_quintiles, lrzcurve_basic, lrzcurve
+    public :: quantili, calculate_quintiles, lrzcurve_basic, lrzcurve, unique
     
     ! Optimization:
     public :: golden_method !similar to fminbnd in Matlab
@@ -201,6 +201,7 @@ contains
 	! Purpose: Find unique values in array x 
 	! Return a smaller array with only unique values and corresponding (last) indeces 
 	! Identical to matlab unique with 'last' option 
+    ! WARNING: The input array x must be sorted in ascending order
 
 	implicit none
 
@@ -228,8 +229,6 @@ contains
 	enddo
 	
 	ind_u(i_u) = n
-	
-	write(*,*) "i_u = ", i_u 
 	
 	! Outputs
 	x_u = x_u(1:i_u)
@@ -384,26 +383,27 @@ contains
     !===============================================================================!
     
     function quantili(x,w,q) result(y)
-    ! Purpose: Compare to subroutine calculate_quintiles
-    ! LEGEND
-    ! computes quantiles q of x with weights w
+    ! Purpose: computes quantiles q of x with weights w
     ! w is discrete prob function (or PMF)
     ! need not be sorted or normalized
     ! Sources: Cagetti and De Nardi M-function quantili.m
+    ! Note: takes care of repeated values
+    ! Dependencies: calls subroutine unique
     use toolbox, only: sort    
     implicit none
     
-    !Declare inputs/output:
+    !Declare inputs:
     real(8), intent(in) :: x(:)
     real(8), intent(in) :: w(:)
     real(8), intent(in) :: q(:)
+    !Declare output:
     real(8) :: y(size(q))
 
     !Declare locals
     integer :: i, n, istat
-    integer, allocatable :: ix(:)
-    !real(8) :: xs(size(x)),ws(size(x)),cums(size(x))
-    real(8),allocatable :: xs(:),ws(:),cums(:)
+    integer, allocatable :: ix(:), ind_u(:)
+    real(8), allocatable :: xs(:), ws(:), cums(:)
+    real(8), allocatable :: cums_u(:), xs_u(:)
 
     n = size(x)
     allocate( ix(n), xs(n),ws(n),cums(n),stat=istat )
@@ -422,10 +422,18 @@ contains
     ws=w(ix)
     ws=ws/sum(ws)
     cums=cumsum(ws)
+    
+    ![xs_u,ind_u] = unique(xs,'last')
+    call unique(xs, xs_u,ind_u)
+    cums_u = cums(ind_u)
 
     y = 0.0d0
     do i=1,size(q)
-	    y(i) = linint(cums,xs,q(i))
+        if (cums_u(1)<=q(i)) then
+            y(i) = linint(cums_u,xs_u,q(i))
+        else
+            y(i) = xs_u(1)    
+        endif
     enddo
 
     end function quantili
@@ -564,17 +572,19 @@ contains
     end subroutine lrzcurve_basic
     !===============================================================================!
     
-    subroutine lrzcurve(p,x, fx,sx,gini,mean_x,stdv_x)
+    subroutine lrzcurve(p,x, fx_out,sx_out,gini_out,mean_x_out,stdv_x_out)
     
-    ! ----------- LEGEND ------------------------------------!
-    ! p is the probability distrib (sum to 1)
+    ! ------------------------- LEGEND --------------------------------!
+    ! Purpose: compute Lorenz curve, gini coeff, mean and std
+    ! INPUTS:
+    ! p is the probability distrib (it must sum to 1)
     ! x is a vector with the values of the variable of interest
-    ! (for example, the policy function for bequests/wealth)
-    ! IT SHOULD GIVE EXACTLY THE SAME RESULTS AS MATLAB FUNC
-    ! To plot Lorenz curve: plot(fx,sX) !!!!
+    ! OUTPUTS:
     ! fx(:) is share of population
-    ! sX(:) is the corresponding share of wealth/income/etc.
-    ! -------------------------------------------------------!
+    ! sx(:) is the corresponding share of wealth/income/etc.
+    ! E.g. plot Lorenz curve with fx on the x-axis and sx on the y-axis
+    ! See wiki: https://en.wikipedia.org/wiki/Lorenz_curve
+    ! -----------------------------------------------------------------!
 
     use toolbox, only: sort    
     !use toolbox
@@ -583,25 +593,24 @@ contains
     real(8), intent(in) :: p(:)
     real(8), intent(in) :: x(:)
     !Declare outputs:
-    real(8), allocatable, intent(out) :: fx(:)
-    real(8), allocatable, intent(out) :: sx(:)
-    real(8), intent(out) :: gini
-    real(8), intent(out), optional :: mean_x
-    real(8), intent(out), optional :: stdv_x
+    real(8), allocatable, intent(out) :: fx_out(:)
+    real(8), allocatable, intent(out) :: sx_out(:)
+    real(8), intent(out) :: gini_out
+    real(8), intent(out), optional :: mean_x_out
+    real(8), intent(out), optional :: stdv_x_out 
 
     !Declare locals:
-    integer :: n,i, n_valid, n_valid1, ind, istat
-    real(8) :: minpop
-    real(8), allocatable :: p1(:), x1(:)
-    real(8), allocatable :: fx1(:), sx1(:)
+    integer :: n, i, n_valid, istat
+    real(8) :: minpop, mean_x, stdv_x, gini 
+    real(8), allocatable :: p1(:), x1(:), fx(:), sx(:)
     integer, allocatable :: key(:)
 
     n = size(x)
 
     if (size(p)/=n) then
-        call myerror("lrzcurve: x and p must be of the same size")
+        call myerror("lrzcurve: x and p must have the same size")
     endif
-    if (abs(sum(p)-1.0d0)>1d-6) then
+    if (abs(sum(p)-1.0d0)>1d-8) then
         call myerror("lrzcurve: p must sum to one")
     endif
 
@@ -610,37 +619,18 @@ contains
     !%% Eliminate elements with zero probability
     !p1=p; p(p1==0)  = []; x(p1==0)  = [];
 
+    p1 = pack(p,p/=0.0d0)
+    x1 = pack(x,p/=0.0d0)
+    
     n_valid = count(p/=0.0d0)
-    allocate(p1(n_valid),x1(n_valid),key(n_valid),fx(n_valid),sx(n_valid),stat=istat)
+    allocate(key(n_valid),stat=istat)
     if (istat/=0) then
         call myerror("lrzcurve: Allocation failed!")
     endif
 
-    ind = 0
-    do i = 1,n
-        if ( p(i)/=0.0d0) then
-            ind = ind+1
-            p1(ind) = p(i)
-        endif
-    enddo
-    ind = 0
-    do i = 1,n
-        if ( p(i)/=0.0d0) then
-            ind = ind+1
-            x1(ind) = x(i)
-        endif
-    enddo
-
-    !p1 = pack(p,p/=0.0d0)
-    !x1 = pack(x,p/=0.0d0)
-
-    !Compute mean and standard deviation, if requested
-    if (present(mean_x)) then
-        mean_x  = dot_product(p1,x1)
-    endif
-    if (present(stdv_x)) then
-        stdv_x  = dot_product(p1,(x1-mean_x)**2)
-    endif
+    !Compute mean and standard deviation
+    mean_x  = dot_product(p1,x1)
+    stdv_x  = dot_product(p1,(x1-mean_x)**2)
 
     !Sort x1 in ascending order
     call sort(x1,key)
@@ -651,33 +641,21 @@ contains
     !sx(i) is the term x(i)*fx(i)
     sx = (x1*fx)
     sx = sx/mean_x
-
+    
     !Add initial zero
-    n_valid1 = n_valid+1
-    allocate(fx1(n_valid1),sx1(n_valid1),stat=istat)
-    if (istat/=0) then
-        call myerror("lrzcurve: Allocation of fx1(n_valid1),sx1(n_valid1) failed!")
-    endif
-
-    fx1(1) = 0.0d0
-    sx1(1) = 0.0d0
-
-    do i = 2,n_valid1
-        fx1(i) = fx(i-1)
-        sx1(i) = sx(i-1)
-    enddo
-
+    fx = [0d0, fx]
+    sx = [0d0, sx]
+    
     !Compute cumulative sums:
     ! sx is the cumulative share of x
-    sx1 = cumsum(sx1)
+    sx = cumsum(sx)
 
     !Compute Gini coefficient:
-    gini = sx1(1)*fx1(1)
-    do i = 2,n_valid1
-        gini = gini +(sx1(i)+sx1(i-1))*fx1(i)
+    gini = sx(1)*fx(1)
+    do i = 2,size(fx)
+        gini = gini +(sx(i)+sx(i-1))*fx(i)
     enddo
-    gini = 1.0d0-(gini/sx1(n_valid1))
-
+    gini = 1.0d0-(gini/sx(size(sx)))
 
     ! Keep the smallest population, needed to normalize the Gini coefficient
     minpop = minval(p1)
@@ -685,9 +663,18 @@ contains
     ! Normalize the gini (smth not always done...)
     gini = gini/(1.0d0 - minpop)
 
-    !Lorenz curve(i) is (fx(i), shareX(i))
-    sx = sx1
-    fx = cumsum(fx1)
+    ! Assign outputs
+    ! Lorenz curve(i) is (fx(i), shareX(i))
+    fx_out = cumsum(fx)
+    sx_out = sx
+	gini_out = gini 
+	
+	if (present(mean_x_out)) then
+        mean_x_out  = mean_x
+    endif
+    if (present(stdv_x_out)) then
+        stdv_x_out  = stdv_x
+    endif
 
     end subroutine lrzcurve
     !===============================================================================!
@@ -947,7 +934,7 @@ contains
     if (emax <= emin ) then
         call myerror("bddparetocdf: emax cannot be less than emin!")
     endif
-
+    
     ! Body of Func
     paretocdf = 1.0d0 - (emin/eval)**shape
     cdf       = paretocdf/(1.0d0 - (emin/emax)**shape)
@@ -955,7 +942,7 @@ contains
     end function bddparetocdf
     !===============================================================================!
     
-    subroutine paretojo(neps, eps, shape, rhoeps, ergoeps, pie)
+    subroutine discretize_pareto(neps, eps, shape, rhoeps, ergoeps, pie)
     !--------------------------------------------------------------------------!
     ! This sub computes the ergodic distribution and the transition matrix of a
     ! bounded Pareto distribution, given grids of epsilon values.
@@ -982,8 +969,12 @@ contains
     real(8) :: emin, emax, mass
     real(8) :: mideps(neps-1)
 
-
-    ! Body of paretojo
+    ! Check inputs
+    if (shape<=0.0d0) then
+        call myerror("discretize_pareto: shape param must be positive!")
+    endif
+    
+    ! Body of discretize_pareto
     ergoeps = 0.0d0
     pie     = 0.0d0
 
@@ -1004,16 +995,15 @@ contains
     enddo
     ergoeps(neps) = 1.0d0 - bddparetocdf(emin, emax, shape, mideps(neps-1))
 
-
     ! transition matrix given rhoeps
     do i = 1,neps
         pie(i,i) = rhoeps
         pie(i,:) = pie(i,:) + (1.0d0-rhoeps)*ergoeps
     enddo
 
-    end subroutine paretojo
+    end subroutine discretize_pareto
     !===============================================================================!
-	
+    
     subroutine tauchen(rho, sigma, mu, cover, gp, values, trans)
     !-------------------------------------------------------------------------------!
     ! Purpose: approximating first-order autoregressive process with Markov chain
