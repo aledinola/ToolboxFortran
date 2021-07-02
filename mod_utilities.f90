@@ -7,7 +7,7 @@ module mod_utilities
 	!   Date      Programmer       Description of change
 	!   ====      ==========       =====================
 	!  20210407   A. Di Nola       Original code
-		
+	!  20210701   A. Di Nola       Added read1dim,read2dim	
 	! USE other modules
 	implicit none
 	
@@ -58,6 +58,18 @@ module mod_utilities
 		module procedure write7dim_i
 		module procedure write7dim_r  
 	end interface
+	
+	! - Read 1-DIM array
+    	interface read1dim
+        	module procedure read1dim_i
+        	module procedure read1dim_r
+    	end interface
+    
+    	! - Read 2-DIM array
+    	interface read2dim
+        	module procedure read2dim_i
+        	module procedure read2dim_r
+    	end interface
 
     
     contains
@@ -598,6 +610,110 @@ module mod_utilities
     
     end subroutine write7dim_i
     !-----------------------------------------------------------------!
+    
+    !=======================================================================!
+    
+    subroutine read1dim_i(x,file_name)
+    
+    implicit none
+    
+    character(len=*), intent(in) :: file_name
+    integer, intent(out) :: x(:)
+    integer :: unitno,i, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in read1dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i = 1,size(x)
+        read(unitno,*) x(i)
+    enddo
+    close(unitno)
+    
+    end subroutine read1dim_i
+    !=======================================================================!
+    
+    subroutine read1dim_r(x,file_name)
+    
+    implicit none
+    
+    character(len=*), intent(in) :: file_name
+    real(8), intent(out) :: x(:)
+    integer :: unitno,i, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in read1dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i = 1,size(x)
+        read(unitno,*) x(i)
+    enddo
+    close(unitno)
+    
+    end subroutine read1dim_r
+    !=======================================================================!
+    
+    subroutine read2dim_i(x,file_name)
+    
+    implicit none
+    
+    character(len=*), intent(in) :: file_name
+    integer, intent(out) :: x(:,:)
+    integer :: unitno,i1,i2, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in read2dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i2 = 1,size(x,dim=2)
+        do i1 = 1,size(x,dim=1)
+            read(unitno,*) x(i1,i2)
+        enddo
+    enddo
+    
+    close(unitno)
+    
+    end subroutine read2dim_i
+    !=======================================================================!
+    
+    subroutine read2dim_r(x,file_name)
+    
+    implicit none
+    
+    external getcwd
+    
+    character(len=*), intent(in) :: file_name
+    real(8), intent(out) :: x(:,:)
+    integer :: unitno,i1,i2, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in read2dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i2 = 1,size(x,dim=2)
+        do i1 = 1,size(x,dim=1)
+            read(unitno,*) x(i1,i2)
+        enddo
+    enddo
+    
+    close(unitno)
+    
+    end subroutine read2dim_r
+    !=======================================================================!
+
+    
 
 
     
