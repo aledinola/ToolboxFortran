@@ -6,7 +6,8 @@ module mod_numerical
     ! https://sites.google.com/site/greygordon/code
     ! Numerical recipes in F90: http://numerical.recipes/
     ! http://karibzhanov.com/
-    ! Last update: 2021-05-20
+    ! Giulio Fella: https://github.com/gfell
+    ! Last update: 2021-07-03
     !=========================================================================!
     
     ! USE other modules 
@@ -21,6 +22,9 @@ module mod_numerical
     public :: linspace
     public :: ones, eye, cumsum
     public :: outerprod
+    
+    ! Sorting subroutines
+    public :: QsortC
     
     ! General-purpose routines
     public :: is_monotone, my_closest, grid, mycorr
@@ -200,7 +204,7 @@ contains
     subroutine unique(x, x_u,ind_u)
 	! Purpose: Find unique values in array x 
 	! Return a smaller array with only unique values and corresponding (last) indeces 
-	! Identical to matlab unique with 'last' option 
+	! Identical to matlab function 'unique' with 'last' option 
     ! WARNING: The input array x must be sorted in ascending order
 
 	implicit none
@@ -684,8 +688,7 @@ contains
     ! in the interval (a, b).
     ! Source: https://en.wikipedia.org/wiki/Golden-section_search
     ! Adapted to Fortran90 from: https://github.com/QuantEcon
-    ! Originally written by Arnau Valladares-Esteban.
-    ! Modified by Alessandro Di Nola.
+    
     !---------------------------------------------------!
     !INPUTS
     interface
@@ -934,7 +937,7 @@ contains
     if (emax <= emin ) then
         call myerror("bddparetocdf: emax cannot be less than emin!")
     endif
-    
+
     ! Body of Func
     paretocdf = 1.0d0 - (emin/eval)**shape
     cdf       = paretocdf/(1.0d0 - (emin/emax)**shape)
@@ -973,7 +976,7 @@ contains
     if (shape<=0.0d0) then
         call myerror("discretize_pareto: shape param must be positive!")
     endif
-    
+
     ! Body of discretize_pareto
     ergoeps = 0.0d0
     pie     = 0.0d0
@@ -995,6 +998,7 @@ contains
     enddo
     ergoeps(neps) = 1.0d0 - bddparetocdf(emin, emax, shape, mideps(neps-1))
 
+
     ! transition matrix given rhoeps
     do i = 1,neps
         pie(i,i) = rhoeps
@@ -1003,12 +1007,12 @@ contains
 
     end subroutine discretize_pareto
     !===============================================================================!
-    
+	
     subroutine tauchen(rho, sigma, mu, cover, gp, values, trans)
     !-------------------------------------------------------------------------------!
     ! Purpose: approximating first-order autoregressive process with Markov chain
     !
-    ! y_t = mu + rho * y_(t-1) + u_t
+    ! y_t = rho * y_(t-1) + u_t
     !
     ! u_t is a Gaussian white noise process with standard deviation sigma.
     !
@@ -1180,6 +1184,73 @@ contains
         !-----------------------------------------------------------!
     end function mycorr
     !===============================================================================!
+    
+    RECURSIVE SUBROUTINE QsortC(A, index_A)
+    ! Author: Juli Rew, SCD Consulting (juliana@ucar.edu), 9/03
+    ! Based on algorithm from Thomas H. Cormen, Charles E. Leiserson, Ronald L.
+    ! Rivest, and Clifford Stein, Introduction to Algorithms, The MIT Press, 1997 edition.
+    ! Made F conformant by Walt Brainerd
+    ! Modified by Giulio Fella (02/2013) to sort the array index accordingly 
+    ! see https://github.com/gfell/gf_qsort/blob/master/mod_gf_qsort.f90
+    
+    ! Input/output variables
+    ! A    	 : real(precision) array to sort
+    ! index_A: integer array indexing elements of A
+    REAL(8), INTENT(in out), DIMENSION(:) :: A
+    INTEGER, INTENT(in out), DIMENSION(SIZE(A)) :: index_A
+    INTEGER :: iq
+
+    IF(SIZE(A) > 1) THEN
+      CALL Partition(A,index_A, iq)
+      CALL QsortC(A(:iq-1),index_A(:iq-1))
+      CALL QsortC(A(iq:),index_A(iq:))
+    ENDIF
+    END SUBROUTINE QsortC
+
+    SUBROUTINE Partition(A, index_A, marker)
+    REAL(8), INTENT(in out), DIMENSION(:) :: A
+    INTEGER, INTENT(in out), DIMENSION(SIZE(A)) :: index_A
+    INTEGER, INTENT(out) :: marker
+    INTEGER :: i, j
+    INTEGER :: index_temp
+    REAL(8) :: temp
+    REAL(8) :: x      ! pivot point
+    x = A(1)
+    i= 0
+    j= SIZE(A) + 1
+
+    DO
+      j = j-1
+      DO
+        IF (A(j) <= x) EXIT
+        j = j-1
+      END DO
+      i = i+1
+      DO
+        IF (A(i) >= x) EXIT
+        i = i+1
+      END DO
+      IF (i < j) THEN
+        ! exchange A(i) and A(j)
+        temp = A(i)
+        A(i) = A(j)
+        A(j) = temp
+
+        index_temp = index_A(i)
+        index_A(i) = index_A(j)
+        index_A(j) = index_temp
+
+      ELSEIF (i == j) THEN
+        marker = i+1
+        RETURN
+      ELSE
+        marker = i
+        RETURN
+      ENDIF
+    END DO
+
+    END SUBROUTINE Partition
+!===============================================================================!
 
  
  
