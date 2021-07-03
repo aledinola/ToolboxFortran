@@ -8,6 +8,7 @@ module mod_utilities
 	!   ====      ==========       =====================
 	!  20210407   A. Di Nola       Original code
 	!  20210701   A. Di Nola       Added read1dim,read2dim	
+    
 	! USE other modules
 	implicit none
 	
@@ -19,6 +20,12 @@ module mod_utilities
 	!Declare module variables
 
 	!Declare generic interface
+    
+    interface print1dim
+		module procedure print1dim_i
+		module procedure print1dim_r
+    end interface
+    
 	interface printMatrix
 		module procedure printMatrix_i
 		module procedure printMatrix_r
@@ -60,22 +67,62 @@ module mod_utilities
 	end interface
 	
 	! - Read 1-DIM array
-    	interface read1dim
-        	module procedure read1dim_i
-        	module procedure read1dim_r
-    	end interface
+    interface read1dim
+        module procedure read1dim_i
+        module procedure read1dim_r
+    end interface
     
-    	! - Read 2-DIM array
-    	interface read2dim
-        	module procedure read2dim_i
-        	module procedure read2dim_r
-    	end interface
+    ! - Read 2-DIM array
+    interface read2dim
+        module procedure read2dim_i
+        module procedure read2dim_r
+    end interface
 
     
     contains
     
     !Module procedures
 	
+    !-----------------------------------------------------------------!
+    !   PRINT VECTOR  
+    !-----------------------------------------------------------------!
+    subroutine print1dim_r(x)
+    ! This subroutine prints a vector (1-dim array) x on the screen
+        
+    implicit none
+    !Declare inputs:
+    real(8), intent(in) :: x(:)
+    integer :: i
+     
+    !Display vector x on screen
+    do i = 1,size(x)
+        write(*,'(f12.6," ")'), x(i)
+        !write(*,'(" ")', advance = 'no')
+	enddo
+	write(*,"()")  
+    write(*,*) " "
+    
+    end subroutine print1dim_r
+    !-----------------------------------------------------------------!
+    
+    subroutine print1dim_i(x)
+    ! This subroutine prints a vector (1-dim array) x on the screen
+        
+    implicit none
+    !Declare inputs:
+    integer, intent(in) :: x(:)
+    integer :: i
+     
+    !Display vector x on screen
+    do i = 1,size(x)
+        write(*,'(I6," ")'), x(i)
+        !write(*,'(" ")', advance = 'no')
+	enddo
+	write(*,"()")  
+    write(*,*) " "
+    
+    end subroutine print1dim_i
+    
     !-----------------------------------------------------------------!
     !   PRINT MATRIX 
     !-----------------------------------------------------------------!
