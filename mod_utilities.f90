@@ -7,7 +7,8 @@ module mod_utilities
 	!   Date      Programmer       Description of change
 	!   ====      ==========       =====================
 	!  20210407   A. Di Nola       Original code
-	!  20210701   A. Di Nola       Added read1dim,read2dim	
+	!  20210701   A. Di Nola       Added read1dim,read2dim
+    !  20210725   A. Di Nola       Added writescalar, readscalar
     
 	! USE other modules
 	implicit none
@@ -29,8 +30,13 @@ module mod_utilities
 	interface printMatrix
 		module procedure printMatrix_i
 		module procedure printMatrix_r
-	end interface
+    end interface
 	
+    interface writescalar
+		module procedure writescalar_i
+		module procedure writescalar_r
+    end interface
+    
 	interface write1dim
 		module procedure write1dim_i
 		module procedure write1dim_r
@@ -64,8 +70,14 @@ module mod_utilities
 	interface write7dim
 		module procedure write7dim_i
 		module procedure write7dim_r  
-	end interface
+    end interface
 	
+    ! - Read scalar
+    interface readscalar
+        module procedure readscalar_i
+        module procedure readscalar_r
+    end interface
+    
 	! - Read 1-DIM array
     interface read1dim
         module procedure read1dim_i
@@ -215,6 +227,54 @@ module mod_utilities
     endif
     
     end subroutine printMatrix_i
+    
+    !-----------------------------------------------------------------!
+    !   WRITE SCALARS
+    !-----------------------------------------------------------------!
+    subroutine writescalar_r(x,file_name)
+        
+    implicit none
+    !Declare inputs:
+    real(8), intent(in) :: x
+    character(len=*), intent(in) :: file_name
+    integer :: unitno,i, ierr
+    
+    !Write scalar x into a txt file
+    open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error: write1dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    write(unitno,*) x
+
+    close(unitno)
+    
+    end subroutine writescalar_r
+    !-----------------------------------------------------------------!
+    subroutine writescalar_i(x,file_name)
+        
+    implicit none
+    !Declare inputs:
+    integer, intent(in) :: x
+    character(len=*), intent(in) :: file_name
+    integer :: unitno,i, ierr
+    
+    !Write scalar x into a txt file
+    open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error: write1dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    write(unitno,*) x
+
+    close(unitno)
+    
+    end subroutine writescalar_i
+    !-----------------------------------------------------------------!
     
     !-----------------------------------------------------------------!
     !   WRITE 1 DIM ARRAYS
@@ -659,6 +719,49 @@ module mod_utilities
     !-----------------------------------------------------------------!
     
     !=======================================================================!
+    subroutine readscalar_i(x,file_name)
+    
+    implicit none
+    
+    character(len=*), intent(in) :: file_name
+    integer, intent(out) :: x
+    integer :: unitno,i, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in readscalar: cannot open file"
+		pause
+		stop 
+    endif
+    
+    read(unitno,*) x
+    
+    close(unitno)
+    
+    end subroutine readscalar_i
+    !=======================================================================!
+    
+    subroutine readscalar_r(x,file_name)
+    
+    implicit none
+    
+    character(len=*), intent(in) :: file_name
+    real(8), intent(out) :: x
+    integer :: unitno,i, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in readscalar: cannot open file"
+		pause
+		stop 
+    endif
+    
+    read(unitno,*) x
+    
+    close(unitno)
+    
+    end subroutine readscalar_r
+    !=======================================================================!
     
     subroutine read1dim_i(x,file_name)
     
@@ -760,33 +863,29 @@ module mod_utilities
     end subroutine read2dim_r
     !=======================================================================!
 
-    
+    subroutine create_directory( newDirPath )
+    ! Author:  Jess Vriesema
+    ! Date:    Spring 2011
+    ! Purpose: Creates a directory at ./newDirPath
+
+    implicit none
+
+    character(len=*), intent(in) :: newDirPath
+    character(len=256)           :: mkdirCmd
+    logical                      :: dirExists
+
+    ! Check if the directory exists first
+!   inquire( file=trim(newDirPath)//'/.', exist=dirExists )  ! Works with gfortran, but not ifort
+    inquire( directory=newDirPath, exist=dirExists )         ! Works with ifort, but not gfortran
 
 
-    
-!    subroutine create_directory( newDirPath )
-!    ! Author:  Jess Vriesema
-!    ! Date:    Spring 2011
-!    ! Purpose: Creates a directory at ./newDirPath
-!
-!    implicit none
-!
-!    character(len=*), intent(in) :: newDirPath
-!    character(len=256)           :: mkdirCmd
-!    logical                      :: dirExists
-!
-!    ! Check if the directory exists first
-!!   inquire( file=trim(newDirPath)//'/.', exist=dirExists )  ! Works with gfortran, but not ifort
-!    inquire( directory=newDirPath, exist=dirExists )         ! Works with ifort, but not gfortran
-!
-!
-!    if (dirExists) then
-!!      write (*,*) "Directory already exists: '"//trim(newDirPath)//"'"
-!    else
-!        mkdirCmd = 'mkdir -p '//trim(newDirPath)
-!        write(*,'(a)') "Creating new directory: '"//trim(mkdirCmd)//"'"
-!        call system( mkdirCmd )
-!    endif
-!    end subroutine create_directory
+    if (dirExists) then
+!      write (*,*) "Directory already exists: '"//trim(newDirPath)//"'"
+    else
+        mkdirCmd = 'mkdir -p '//trim(newDirPath)
+        write(*,'(a)') "Creating new directory: '"//trim(mkdirCmd)//"'"
+        call system( mkdirCmd )
+    endif
+    end subroutine create_directory
     
 end module mod_utilities
