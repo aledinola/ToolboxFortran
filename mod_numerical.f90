@@ -579,7 +579,7 @@ contains
     end subroutine lrzcurve_basic
     !===============================================================================!
     
-    subroutine lrzcurve(p,x, fx_out,sx_out,gini_out,mean_x_out,stdv_x_out)
+    subroutine lrzcurve(p,x,gini_out,fx_out,sx_out,mean_x_out,stdv_x_out)
     
     ! ------------------------- LEGEND --------------------------------!
     ! Purpose: compute Lorenz curve, gini coeff, mean and std
@@ -604,9 +604,9 @@ contains
     real(8), intent(in) :: p(:)
     real(8), intent(in) :: x(:)
     !Declare outputs:
-    real(8), allocatable, intent(out) :: fx_out(:)
-    real(8), allocatable, intent(out) :: sx_out(:)
     real(8), intent(out) :: gini_out
+    real(8), allocatable, intent(out), optional :: fx_out(:)
+    real(8), allocatable, intent(out), optional :: sx_out(:)
     real(8), intent(out), optional :: mean_x_out
     real(8), intent(out), optional :: stdv_x_out 
 
@@ -677,12 +677,17 @@ contains
     gini = gini/(1.0d0 - minpop)
 
     ! Assign outputs
+    gini_out = gini
+    
+    ! Assign optional outputs
     ! Lorenz curve(i) is (fx(i), shareX(i))
-    fx_out = cumsum(fx)
-    sx_out = sx
-	gini_out = gini 
-	
-	if (present(mean_x_out)) then
+    if (present(fx_out)) then
+        fx_out = cumsum(fx)
+    endif
+    if (present(sx_out)) then
+        sx_out = sx
+    endif
+    if (present(mean_x_out)) then
         mean_x_out  = mean_x
     endif
     if (present(stdv_x_out)) then
