@@ -10,6 +10,7 @@ module mod_numerical
     !   Date      Programmer       Description of change
 	!   ====      ==========       =====================
 	!  20210817   A. Di Nola       Original code
+	!  20210818   A. Di Nola       Changed lrzcurve
     !=========================================================================!
     
     ! USE other modules 
