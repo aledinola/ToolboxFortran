@@ -7,7 +7,9 @@ module mod_numerical
     ! Numerical recipes in F90: http://numerical.recipes/
     ! http://karibzhanov.com/
     ! Giulio Fella: https://github.com/gfell
-    ! Last update: 2021-07-03
+    !   Date      Programmer       Description of change
+	!   ====      ==========       =====================
+	!  20210817   A. Di Nola       Original code
     !=========================================================================!
     
     ! USE other modules 
@@ -588,10 +590,14 @@ contains
     ! sx(:) is the corresponding share of wealth/income/etc.
     ! E.g. plot Lorenz curve with fx on the x-axis and sx on the y-axis
     ! See wiki: https://en.wikipedia.org/wiki/Lorenz_curve
+    ! DEPENDENCIES:
+    ! lrzcurve calls a subroutine to sort arrays. It can either be
+    ! <sort> from Kindermann's toolbox (and in this case you need to use
+    ! the toolbox) or <QsortC> which is stored in this module
     ! -----------------------------------------------------------------!
 
-    use toolbox, only: sort    
-    !use toolbox
+    !use toolbox, only: sort    
+    
     implicit none
     !Declare inputs:
     real(8), intent(in) :: p(:)
@@ -628,6 +634,7 @@ contains
     
     n_valid = count(p/=0.0d0)
     allocate(key(n_valid),stat=istat)
+    key = [ (i,i=1,n_valid) ]
     if (istat/=0) then
         call myerror("lrzcurve: Allocation failed!")
     endif
@@ -637,7 +644,8 @@ contains
     stdv_x  = dot_product(p1,(x1-mean_x)**2)
 
     !Sort x1 in ascending order
-    call sort(x1,key)
+    !call sort(x1,key)
+    call QsortC(x1,key)
 
     !Sort distribution accordingly
     fx = p1(key)
@@ -1196,10 +1204,10 @@ contains
     ! Input/output variables
     ! A    	 : real(precision) array to sort
     ! index_A: integer array indexing elements of A
-    REAL(8), INTENT(in out), DIMENSION(:) :: A
-    INTEGER, INTENT(in out), DIMENSION(SIZE(A)) :: index_A
+    REAL(8), INTENT(inout), DIMENSION(:) :: A
+    INTEGER, INTENT(inout), DIMENSION(SIZE(A)) :: index_A
     INTEGER :: iq
-
+    
     IF(SIZE(A) > 1) THEN
       CALL Partition(A,index_A, iq)
       CALL QsortC(A(:iq-1),index_A(:iq-1))
