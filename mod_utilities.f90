@@ -94,6 +94,115 @@ module mod_utilities
     contains
     
     !Module procedures
+    
+    !**********************************************************
+  ! PRINT VECTOR BASH
+  !**********************************************************  
+  subroutine print_vector(v)
+  !**********************************************************
+  ! PRINT_VECTOR prints a vector in the terminal
+  ! Usage: 
+  !	call print_vector(v)
+
+  ! INPUTS
+  !	v     	: vector to print 
+  !  
+  !***********************************************************
+    !Local
+    integer :: i
+    
+    !Dummy
+    real, intent(in) :: v(:)
+
+    do i = 1,size(v)
+       write(*,*) v(i)
+    end do
+  end subroutine print_vector
+
+  !**********************************************************
+  ! PRINT MATRIX BASH
+  !**********************************************************  
+  subroutine print_matrix(v)
+  !**********************************************************
+  ! PRINT_MATRIX prints matrix in the terminal  
+  ! Usage: 
+  !	call print_matrix(v)
+    
+  ! INPUTS
+  !	v     : matrix to print 
+  !
+  !***********************************************************
+      
+    !Local
+    integer :: i
+    
+    !Dummy
+    real, intent(in) :: v(:,:)
+
+    do i = 1,size(v,1)
+       write(*,*) v(i,:)
+    end do
+  end subroutine print_matrix
+
+  !**********************************************************
+  ! PRINT MATRIX DATA FILE (.dat)
+  !**********************************************************  
+  subroutine print_matrix_dat(namefile,v)
+  !**********************************************************
+  ! PRINT_MATRIX_DAT print matrix in a dat file   
+  ! Usage: 
+  !	call print_matrix_dat(namefile,v)
+    
+  ! INPUTS
+  !     namefile : name of the file    
+  !	v        : matrix to print 
+  !
+  !***********************************************************
+    !Local
+    integer :: i
+    
+    !Dummy
+    real, intent(in) :: v(:,:)
+    character (len=*) :: namefile
+
+    open(1, file=namefile, action='write', status='replace')
+
+    do i = 1,size(v,1)
+       write(1,*) v(i,:)
+    end do
+    close(1)
+  end subroutine print_matrix_dat
+
+  !**********************************************************
+  ! PRINT VECTOR DATA FILE (.dat)
+  !**********************************************************  
+  subroutine print_vector_dat(namefile,v) 
+  !**********************************************************
+  ! PRINT_VECTOR_DAT prints vector in a dat file  
+  ! Usage: 
+  !	call print_matrix_dat(namefile,v,n)
+    
+  ! INPUTS
+  !	namefile     : name of the dat file 
+  !	v            : vector to print  
+  !     n            : size of the vector
+  !
+  !***********************************************************
+    !Local
+    integer :: i
+    
+    !Dummy
+    real, intent(in) :: v(:)
+    character (len=*) :: namefile
+
+    open(1, file=namefile, action='write', status = 'replace')
+
+    do i = 1,size(v)
+       write(1,*) v(i)
+    end do
+    close(1)
+    
+  end subroutine print_vector_dat
 	
     !-----------------------------------------------------------------!
     !   PRINT VECTOR  
