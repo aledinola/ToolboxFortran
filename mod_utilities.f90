@@ -9,6 +9,7 @@ module mod_utilities
 	!  20210407   A. Di Nola       Original code
 	!  20210701   A. Di Nola       Added read1dim,read2dim
     !  20210725   A. Di Nola       Added writescalar, readscalar
+    !  20210829   A. Di Nola       Added print_vector, print_matrix
     
 	! USE other modules
 	implicit none
