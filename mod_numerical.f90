@@ -11,6 +11,7 @@ module mod_numerical
 	!   ====      ==========       =====================
 	!  20210817   A. Di Nola       Original code
 	!  20210818   A. Di Nola       Changed lrzcurve
+	!  20210830   A. Di Nola       Added function gini
     !=========================================================================!
     
     ! USE other modules 
@@ -42,7 +43,7 @@ module mod_numerical
     public :: discretize_pareto, bddparetocdf, tauchen
     
     ! Percentiles, Gini and Lorenz curve:
-    public :: quantili, calculate_quintiles, lrzcurve_basic, lrzcurve, unique
+    public :: quantili, calculate_quintiles, lrzcurve_basic, lrzcurve, unique, gini
     
     ! Optimization:
     public :: golden_method !similar to fminbnd in Matlab
