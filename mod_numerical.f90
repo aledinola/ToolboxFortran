@@ -7,11 +7,13 @@ module mod_numerical
     ! Numerical recipes in F90: http://numerical.recipes/
     ! http://karibzhanov.com/
     ! Giulio Fella: https://github.com/gfell
+	! Fabian Kindermann: https://www.ce-fortran.com/
     !   Date      Programmer       Description of change
 	!   ====      ==========       =====================
 	!  20210817   A. Di Nola       Original code
 	!  20210818   A. Di Nola       Changed lrzcurve
 	!  20210830   A. Di Nola       Added function gini
+	!  20210901   A. Di Nola       Added function ind2sub 
     !=========================================================================!
     
     ! USE other modules 
@@ -1337,6 +1339,70 @@ contains
 
     END SUBROUTINE Partition
 !===============================================================================!
+
+! Compute the cumulative product of the vector x
+function cumprod_r(x) result(y)
+    implicit none
+    real(8), intent(in) :: x(1:)
+    real(8) :: y(size(x))
+    !local
+    real(8) :: tmp
+    integer :: i
+
+
+    y(1) = x(1)
+    tmp = x(1)
+    do i = 2,size(x)
+        tmp = tmp*x(i)
+        y(i) = tmp
+    end do
+
+end function cumprod_r
+!===============================================================================!
+
+function cumprod_i(x) result(y)
+    implicit none
+    integer, intent(in) :: x(1:)
+    integer  :: y(size(x))
+    !local
+    integer :: tmp
+    integer :: i
+
+    y(1) = x(1)
+    tmp = x(1)
+    do i = 2,size(x)
+        tmp = tmp*x(i)
+        y(i) = tmp
+    end do
+
+end function cumprod_i
+!===============================================================================!
+    
+! Code is based of the matlab ind2sub.m
+! Given an integer vector siz that gives the shape of
+! some array and the linear index i, convert the linear
+! index into an i1,i2,... such that 
+!  a(i) = a(i1,i2,...)
+function ind2sub(siz,i) result(ivec)
+    integer, intent(in) :: siz(:)
+    integer :: i
+    integer :: ivec(size(siz))
+    ! local
+    integer :: d
+    integer :: j,k
+    integer :: cumprodivec(size(siz))
+
+    cumprodivec(1) = 1
+    cumprodivec(2:size(siz)) = cumprod(siz(1:size(siz)-1))
+
+    j = i
+    do d = size(siz),1,-1
+        k = mod(j-1,cumprodivec(d)) + 1
+        ivec(d) = (j-k)/cumprodivec(d) + 1
+        j = k
+    end do
+
+end function ind2sub
 
  
  
