@@ -1,7 +1,7 @@
 module mod_utilities
 	! Description:
 	! - Write arrays (of real and integer type) of up to
-	!   7 dimensions to text file, columnwise
+	!   7 dimensions to text file or binary file columnwise
 	! - Print a matrix to a file as (row,col)
 	!
 	!   Date      Programmer       Description of change
@@ -10,6 +10,7 @@ module mod_utilities
 	!  20210701   A. Di Nola       Added read1dim,read2dim
     !  20210725   A. Di Nola       Added writescalar, readscalar
     !  20210829   A. Di Nola       Added print_vector, print_matrix
+    !  20210901   A. Di Nola       Added write1dimBinary
     
 	! USE other modules
 	implicit none
@@ -36,6 +37,11 @@ module mod_utilities
     interface writescalar
 		module procedure writescalar_i
 		module procedure writescalar_r
+    end interface
+    
+    interface write1dimBinary
+		module procedure write1dimBinary_i
+		module procedure write1dimBinary_r
     end interface
     
 	interface write1dim
@@ -386,8 +392,63 @@ module mod_utilities
     end subroutine writescalar_i
     !-----------------------------------------------------------------!
     
+    subroutine write1dimBinary_r(x,file_name)
+        
+    implicit none
+    !Declare inputs:
+    real(8), intent(in) :: x(:)
+    character(len=*), intent(in) :: file_name
+    integer :: unitno,i, ierr
+    
+    !Write 1 dim array x into a BINARY file
+    !Note the commands FORM="unformatted", ACCESS="stream"
+    !and the fact that write(unitno) instead of write(unitno,*)
+    OPEN(NEWUNIT=unitno, FILE=file_name, FORM="unformatted", ACCESS="stream", STATUS="unknown")
+    if (ierr/=0) then
+        write(*,*) "Error: write1dimBinary: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i = 1,size(x,dim=1)
+        write(unitno) x(i)
+    enddo
+        
+    close(unitno)
+    
+    end subroutine write1dimBinary_r
     !-----------------------------------------------------------------!
-    !   WRITE 1 DIM ARRAYS
+    
+    subroutine write1dimBinary_i(x,file_name)
+        
+    implicit none
+    !Declare inputs:
+    integer, intent(in) :: x(:)
+    character(len=*), intent(in) :: file_name
+    integer :: unitno,i, ierr
+    
+    !Write 1 dim array x into a BINARY file
+    !Note the commands FORM="unformatted", ACCESS="stream"
+    !and the fact that write(unitno) instead of write(unitno,*)
+    OPEN(NEWUNIT=unitno, FILE=file_name, FORM="unformatted", ACCESS="stream", STATUS="unknown")
+    if (ierr/=0) then
+        write(*,*) "Error: write1dimBinary: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i = 1,size(x,dim=1)
+        write(unitno) x(i)
+    enddo
+        
+    close(unitno)
+    
+    end subroutine write1dimBinary_i
+    !-----------------------------------------------------------------!
+    
+
+    !-----------------------------------------------------------------!
+    !   WRITE 1 DIM ARRAYS as text files
     !-----------------------------------------------------------------!
     subroutine write1dim_r(x,file_name)
         
