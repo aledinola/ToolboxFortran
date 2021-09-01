@@ -26,8 +26,9 @@ module mod_numerical
     
     ! Replicate basic Matlab functions
     public :: linspace
-    public :: ones, eye, cumsum
+    public :: ones, eye, cumsum, cumprod
     public :: outerprod
+    public :: ind2sub
     
     ! Sorting subroutines
     public :: QsortC
