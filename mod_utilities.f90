@@ -403,7 +403,7 @@ module mod_utilities
     !Write 1 dim array x into a BINARY file
     !Note the commands FORM="unformatted", ACCESS="stream"
     !and the fact that write(unitno) instead of write(unitno,*)
-    OPEN(NEWUNIT=unitno, FILE=file_name, FORM="unformatted", ACCESS="stream", STATUS="unknown")
+    OPEN(NEWUNIT=unitno, FILE=file_name, FORM="unformatted", ACCESS="stream", STATUS="unknown", iostat=ierr)
     if (ierr/=0) then
         write(*,*) "Error: write1dimBinary: cannot open file"
 		pause
@@ -430,7 +430,7 @@ module mod_utilities
     !Write 1 dim array x into a BINARY file
     !Note the commands FORM="unformatted", ACCESS="stream"
     !and the fact that write(unitno) instead of write(unitno,*)
-    OPEN(NEWUNIT=unitno, FILE=file_name, FORM="unformatted", ACCESS="stream", STATUS="unknown")
+    OPEN(NEWUNIT=unitno, FILE=file_name, FORM="unformatted", ACCESS="stream", STATUS="unknown", iostat=ierr)
     if (ierr/=0) then
         write(*,*) "Error: write1dimBinary: cannot open file"
 		pause
