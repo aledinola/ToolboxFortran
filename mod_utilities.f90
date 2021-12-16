@@ -11,6 +11,8 @@ module mod_utilities
     !  20210725   A. Di Nola       Added writescalar, readscalar
     !  20210829   A. Di Nola       Added print_vector, print_matrix
     !  20210901   A. Di Nola       Added write1dimBinary
+	!  20211120   A. Di Nola       Added disp 
+    !  20211123   A. Di Nola       Added read3dim
     
 	! USE other modules
 	implicit none
@@ -96,13 +98,27 @@ module mod_utilities
         module procedure read2dim_i
         module procedure read2dim_r
     end interface
+    
+    ! - Read 3-DIM array
+    interface read3dim
+        module procedure read3dim_i
+        module procedure read3dim_r
+    end interface
+	
+	! - Display vector, matrix or 3-D array (with title)
+	interface disp
+        module procedure disp_scal, disp_vec, disp_mat, disp_3d, disp_vec_i, disp_mat_i, &
+                         disp_scal_title, disp_vec_title, disp_mat_title, disp_3d_title, &
+                         disp_vec_title_i, disp_mat_title_i, disp_mat_title_l, disp_mat_l
+    end interface disp
 
+	integer, parameter :: rt = 8
     
     contains
     
     !Module procedures
     
-    !**********************************************************
+  !**********************************************************
   ! PRINT VECTOR BASH
   !**********************************************************  
   subroutine print_vector(v)
@@ -119,7 +135,7 @@ module mod_utilities
     integer :: i
     
     !Dummy
-    real, intent(in) :: v(:)
+    real(8), intent(in) :: v(:)
 
     do i = 1,size(v)
        write(*,*) v(i)
@@ -161,7 +177,7 @@ module mod_utilities
   !	call print_matrix_dat(namefile,v)
     
   ! INPUTS
-  !     namefile : name of the file    
+  ! namefile : name of the file    
   !	v        : matrix to print 
   !
   !***********************************************************
@@ -358,7 +374,7 @@ module mod_utilities
     !Write scalar x into a txt file
     open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
     if (ierr/=0) then
-        write(*,*) "Error: write1dim: cannot open file"
+        write(*,*) "Error: writescalar: cannot open file"
 		pause
 		stop 
     endif
@@ -380,7 +396,7 @@ module mod_utilities
     !Write scalar x into a txt file
     open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
     if (ierr/=0) then
-        write(*,*) "Error: write1dim: cannot open file"
+        write(*,*) "Error: writescalar: cannot open file"
 		pause
 		stop 
     endif
@@ -1033,6 +1049,64 @@ module mod_utilities
     
     end subroutine read2dim_r
     !=======================================================================!
+    
+    subroutine read3dim_i(x,file_name)
+    
+    implicit none
+    
+    character(len=*), intent(in) :: file_name
+    integer, intent(out) :: x(:,:,:)
+    integer :: unitno,i1,i2,i3, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in read3dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i3 = 1,size(x,dim=3)
+        do i2 = 1,size(x,dim=2)
+            do i1 = 1,size(x,dim=1)
+                read(unitno,*) x(i1,i2,i3)
+            enddo
+        enddo
+    enddo
+    
+    close(unitno)
+    
+    end subroutine read3dim_i
+    !=======================================================================!
+    
+    subroutine read3dim_r(x,file_name)
+    
+    implicit none
+    
+    external getcwd
+    
+    character(len=*), intent(in) :: file_name
+    real(8), intent(out) :: x(:,:,:)
+    integer :: unitno,i1,i2,i3, ierr
+    
+    open(newunit=unitno, file=file_name, status='old', iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error in read3dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    do i3 = 1,size(x,dim=3)
+        do i2 = 1,size(x,dim=2)
+            do i1 = 1,size(x,dim=1)
+                read(unitno,*) x(i1,i2,i3)
+            enddo
+        enddo
+    enddo
+    
+    close(unitno)
+    
+    end subroutine read3dim_r
+    !=======================================================================!
 
     subroutine create_directory( newDirPath )
     ! Author:  Jess Vriesema
@@ -1058,5 +1132,157 @@ module mod_utilities
         call system( mkdirCmd )
     endif
     end subroutine create_directory
+	
+	!=======================================================================!
+	! ROUTINES TO DISPLAY SCALARS, VECTORS, MATRICES, 3D ARRAYS (WITH TITLE)
+	!=======================================================================!
+	subroutine disp_mat_title_l(title,X)
+		implicit none
+		character(len=*), intent(in) :: title
+		logical, dimension(1:,1:), intent(in) :: X    
+		write(*,'(A)') title
+		call disp_mat_l(X)
+	end subroutine 
+	
+	subroutine disp_mat_l(X)
+		implicit none
+		logical, dimension(1:,1:), intent(in) :: X    
+		integer :: i
+		character(len=5) :: dim2
+		write(dim2,'(i5)') size(X,2)
+		do i = 1,size(X,1)
+			write(*,'('//dim2//'L2)') X(i,:)
+		end do
+	end subroutine disp_mat_l
+
+	subroutine disp_mat_title_i(title,X)
+		implicit none
+		character(len=*), intent(in) :: title
+		integer, dimension(1:,1:), intent(in) :: X    
+		write(*,'(A)') title
+		call disp_mat_i(X)
+		end subroutine 
+		subroutine disp_mat_i(X)
+		implicit none
+		integer, dimension(1:,1:), intent(in) :: X    
+		integer :: i
+		character(len=5) :: dim2
+		write(dim2,'(i5)') size(X,2)
+		do i = 1,size(X,1)
+			write(*,'('//dim2//'i8)') X(i,:)
+		end do
+	end subroutine disp_mat_i
+
+	subroutine disp_vec_title_i(title,X)
+		implicit none
+		character(len=*), intent(in) :: title
+		integer, dimension(1:), intent(in) :: X    
+		write(*,'(A)') title
+		call disp_vec_i(X)
+		end subroutine
+		subroutine disp_vec_i(X)
+		implicit none
+		integer, dimension(1:), intent(in) :: X    
+		integer :: i
+		do i = 1,size(X,1)
+			write(*,'(i8)') X(i)
+		end do
+	end subroutine disp_vec_i
+
+	subroutine disp_vec(X,uid)
+		implicit none
+		real(rt), dimension(:), intent(in) :: X    
+		integer, intent(in), optional :: uid
+		if (     present(uid)) call disp_core(X,size(X,1),1,1,'',uid)
+		if (.not.present(uid)) call disp_core(X,size(X,1),1,1,'',6)
+	end subroutine 
+	subroutine disp_mat(X,uid)
+		implicit none
+		real(rt), dimension(:,:), intent(in) :: X    
+		integer, intent(in), optional :: uid
+		if (     present(uid)) call disp_core(X,size(X,1),size(X,2),1,'',uid)
+		if (.not.present(uid)) call disp_core(X,size(X,1),size(X,2),1,'',6)
+	end subroutine 
+	subroutine disp_3d(X,uid)
+		implicit none
+		real(rt), dimension(:,:,:), intent(in) :: X    
+		integer, intent(in), optional :: uid
+		if (     present(uid)) call disp_core(X,size(X,1),size(X,2),size(X,3),'',uid)
+		if (.not.present(uid)) call disp_core(X,size(X,1),size(X,2),size(X,3),'',6)
+	end subroutine 
+	subroutine disp_vec_title(title,X,uid)
+		implicit none
+		real(rt), dimension(:), intent(in) :: X    
+		character(len=*), intent(in) :: title
+		integer, intent(in), optional :: uid
+		if (     present(uid)) call disp_core(X,size(X,1),1,1,title,uid)
+		if (.not.present(uid)) call disp_core(X,size(X,1),1,1,title,6)
+	end subroutine 
+	subroutine disp_mat_title(title,X,uid)
+		implicit none
+		real(rt), dimension(:,:), intent(in) :: X    
+		character(len=*), intent(in) :: title
+		integer, intent(in), optional :: uid
+		if (     present(uid)) call disp_core(X,size(X,1),size(X,2),1,title,uid)
+		if (.not.present(uid)) call disp_core(X,size(X,1),size(X,2),1,title,6)
+	end subroutine 
+	subroutine disp_3d_title(title,X,uid)
+		implicit none
+		real(rt), dimension(:,:,:), intent(in) :: X    
+		character(len=*), intent(in) :: title
+		integer, intent(in), optional :: uid
+		if (     present(uid)) call disp_core(X,size(X,1),size(X,2),size(X,3),title,uid)
+		if (.not.present(uid)) call disp_core(X,size(X,1),size(X,2),size(X,3),title,6)
+	end subroutine 
+
+	subroutine disp_core(X,n1,n2,n3,title,uid)
+		implicit none
+		integer, intent(in) :: n1,n2,n3,uid
+		character(len=*), intent(in) :: title
+		real(rt), intent(in) :: X(n1,n2,*)
+		! local
+		integer :: i1,i2,i3
+
+		! If no title or uid is present, then use title='' and uid=6
+		do i3 = 1,n3
+			if (n3>1) then
+				write(uid,'(A,i4,A)') title//'(:,:,',i3,')'
+			else
+				if (title/='') write(uid,'(A)') title
+			end if
+			do i1 = 1,n1
+				do i2 = 1,n2-1
+					write(uid,'(f12.5)',advance='no') X(i1,i2,i3)
+				end do
+				write(uid,'(f12.5)') X(i1,n2,i3)
+			end do
+		end do
+
+	end subroutine
+	subroutine disp_scal_title(title,X)
+		implicit none
+		character(len=*), intent(in) :: title
+		real(rt), intent(in) :: X    
+		write(*,'(A)') title
+		call disp_scal(X)
+	end subroutine 
+	subroutine disp_scal(X)
+		implicit none
+		real(rt), intent(in) :: X    
+		write(*,'(f12.5)') X
+	end subroutine disp_scal
+	!=======================================================================!
+	
+	! Acts just like the colon in Matlab
+	pure function colon(a,b)
+		implicit none
+		integer, intent(in) :: a,b
+		integer, dimension(1:b-a+1) :: colon
+		integer :: i
+		do i = a,b
+			colon(i-a+1) = i
+		end do
+	end function colon
+
     
 end module mod_utilities
