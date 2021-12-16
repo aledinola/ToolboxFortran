@@ -13,6 +13,7 @@ module mod_utilities
     !  20210901   A. Di Nola       Added write1dimBinary
 	!  20211120   A. Di Nola       Added disp 
     !  20211123   A. Di Nola       Added read3dim
+    !  20211216   A. Di Nola       Added writeArr1
     
 	! USE other modules
 	implicit none
@@ -44,6 +45,11 @@ module mod_utilities
     interface write1dimBinary
 		module procedure write1dimBinary_i
 		module procedure write1dimBinary_r
+    end interface
+    
+    interface writeArr1
+        module procedure writeArr1_i
+        module procedure writeArr1_r
     end interface
     
 	interface write1dim
@@ -426,10 +432,12 @@ module mod_utilities
 		stop 
     endif
     
-    do i = 1,size(x,dim=1)
-        write(unitno) x(i)
-    enddo
-        
+    !do i = 1,size(x,dim=1)
+    !    write(unitno) x(i)
+    !enddo
+     
+    write(unitno) x
+    
     close(unitno)
     
     end subroutine write1dimBinary_r
@@ -441,7 +449,7 @@ module mod_utilities
     !Declare inputs:
     integer, intent(in) :: x(:)
     character(len=*), intent(in) :: file_name
-    integer :: unitno,i, ierr
+    integer :: unitno, ierr
     
     !Write 1 dim array x into a BINARY file
     !Note the commands FORM="unformatted", ACCESS="stream"
@@ -453,25 +461,55 @@ module mod_utilities
 		stop 
     endif
     
-    do i = 1,size(x,dim=1)
-        write(unitno) x(i)
-    enddo
+    !do i = 1,size(x,dim=1)
+    !    write(unitno) x(i)
+    !enddo
         
+    write(unitno) x
+    
     close(unitno)
     
     end subroutine write1dimBinary_i
     !-----------------------------------------------------------------!
     
-
     !-----------------------------------------------------------------!
-    !   WRITE 1 DIM ARRAYS as text files
+    !   WRITE 1-D ARRAY as single line (faster than write1dim) 
     !-----------------------------------------------------------------!
-    subroutine write1dim_r(x,file_name)
+    subroutine writeArr1_r(x,file_name)
         
     implicit none
     !Declare inputs:
     real(8), intent(in) :: x(:)
     character(len=*), intent(in) :: file_name
+    character(len=50) :: file_format
+    integer :: unitno, ierr
+    
+    !Write 1 dim array x into a txt file
+    open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error: write1dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+   
+    !write(unitno,"(330000(F20.16))") x
+    write(file_format,*) "(",size(x),"(F,:,','))"
+    
+    write(unitno,trim(file_format)) x
+    
+    close(unitno)
+    
+    end subroutine writeArr1_r
+    !-----------------------------------------------------------------!
+    
+    subroutine writeArr1_i(x,file_name)
+        
+    implicit none
+    !Declare inputs:
+    integer, intent(in) :: x(:)
+    character(len=*), intent(in) :: file_name
+    character(len=50) :: file_format
     integer :: unitno,i, ierr
     
     !Write 1 dim array x into a txt file
@@ -482,9 +520,48 @@ module mod_utilities
 		stop 
     endif
     
-    do i = 1,size(x)
-        write(unitno,*) x(i)
-    enddo
+    !Assume size(x) is equal to 330000
+    !write(unitno,"(330000(F20.16))") x
+    write(file_format,*) "(",size(x),"(I,:,','))"
+    
+    write(unitno,trim(file_format)) x
+    
+    close(unitno)
+    
+    end subroutine writeArr1_i
+    !-----------------------------------------------------------------!
+    
+    !-----------------------------------------------------------------!
+    !   WRITE 1 DIM ARRAYS as text files
+    !-----------------------------------------------------------------!
+    subroutine write1dim_r(x,file_name)
+        
+    implicit none
+    !Declare inputs:
+    real(8), intent(in) :: x(:)
+    character(len=*), intent(in) :: file_name
+    character(len=50) :: file_format
+    integer :: unitno,i, ierr
+    
+    !Write 1 dim array x into a txt file
+    open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
+    if (ierr/=0) then
+        write(*,*) "Error: write1dim: cannot open file"
+		pause
+		stop 
+    endif
+    
+    !do i = 1,size(x)
+    !    write(unitno,*) x(i)
+    !enddo
+    
+    !write(file_format,*) "(",size(x),"(F30.16,:,','))"
+    write(file_format,*) "(",size(x),"(F,:,','))"
+    !write(*,*) trim(file_format)
+    !pause
+    !write(unitno,"(330000(F20.16))") x
+    
+    write(unitno,trim(file_format)) x
     
     close(unitno)
     
@@ -496,6 +573,7 @@ module mod_utilities
     !Declare inputs:
     integer, intent(in) :: x(:)
     character(len=*), intent(in) :: file_name
+    !character(len=*) :: file_format
     integer :: unitno,i, ierr
     
     !Write 1 dim array x into a txt file
@@ -505,6 +583,8 @@ module mod_utilities
 		pause
 		stop 
     endif
+    
+    !write(file_format,*) size(x)  
     
     do i = 1,size(x)
         write(unitno,*) x(i)
