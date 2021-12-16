@@ -1,0 +1,38 @@
+# Select Compiler
+COMPILER =  ifort
+
+#SWITCH = /O3 /Qipo /Qprec-div- /QxHost /heap-arrays0 /wrap-margin-
+#SWITCH = /fast /heap-arrays0
+SWITCH = /Qopenmp /fast /O3 /Qipo /Qprec-div- /heap-arrays0
+#SWITCH = /Qopenmp /traceback /check:bounds /check:stack /heap-arrays0 /wrap-margin-
+
+SRCS = src\toolbox.f90 src\mod_utilities.f90 src\mod_numerical.f90 src\mod_globals.f90 src\mod_functions.f90 src\mod_initialize.f90 src\mod_targets.f90 src\solve_household.f90 src\mod_distribution.f90 src\main.f90
+	
+EXEC = exe\run.exe
+
+ifort:
+	$(COMPILER) -fpp $(SWITCH) $(SRCS) -o $(EXEC)
+	
+# Cleaning everything
+
+clean:
+	del *.mod
+	del *.obj
+	del *.pdb
+	del *.ilk
+	del $(EXEC)
+
+#To compile in Mac, type:
+# $ make -f makefile_mac
+
+#To compile in Windows, type:
+# $ nmake /f makefile_win
+
+#Compilation with pre-processor directives, see term -fpp 
+#$(COMPILER) -fpp $(SWITCH) $(SRCS) -o $(EXEC)
+
+#Flag /heap-arrays0 tells the compiler to store
+#all arrays on the heap instead of the stack
+#see https://community.intel.com/t5/Intel-Fortran-Compiler/allocatable-automatic-stack-heap/m-p/1229112#M152715
+
+# Old line $(COMPILER) -fpp $(SWITCH) $(SRCS) -o $(EXEC)
