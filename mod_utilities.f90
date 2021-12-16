@@ -541,7 +541,7 @@ module mod_utilities
     real(8), intent(in) :: x(:)
     character(len=*), intent(in) :: file_name
     character(len=50) :: file_format
-    integer :: unitno,i, ierr
+    integer :: unitno, i, ierr
     
     !Write 1 dim array x into a txt file
     open(newunit=unitno, file=file_name, status='replace',  iostat=ierr)
@@ -551,17 +551,9 @@ module mod_utilities
 		stop 
     endif
     
-    !do i = 1,size(x)
-    !    write(unitno,*) x(i)
-    !enddo
-    
-    !write(file_format,*) "(",size(x),"(F30.16,:,','))"
-    write(file_format,*) "(",size(x),"(F,:,','))"
-    !write(*,*) trim(file_format)
-    !pause
-    !write(unitno,"(330000(F20.16))") x
-    
-    write(unitno,trim(file_format)) x
+    do i = 1,size(x)
+        write(unitno,*) x(i)
+    enddo
     
     close(unitno)
     
