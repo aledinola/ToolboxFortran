@@ -853,6 +853,86 @@ contains
     end subroutine golden_method
     !===============================================================================!
   
+    subroutine max_nonconvex(f, a, b, xmax, fmax, mytol, mymaxit, mynx)
+    ! Purpose: Maximize the univariate function f(x) in [a,b]
+    ! using either grid search or golden method or both
+    ! Deals with non-concave objective functions
+    
+    !---------------------------------------------------!
+    ! INPUTS:
+    interface
+        function f(x)
+        implicit none
+        real(8), intent(in) :: x
+        real(8) :: f
+        end function f
+    end interface
+    real(8), intent(in) :: a, b
+    ! Optional inputs:
+    integer,  optional :: mymaxit
+    real(8), optional :: mytol
+    integer, optional :: mynx
+    ! OUTPUTS:
+    real(8), intent(out) :: xmax, fmax
+    !---------------------------------------------------!
+    
+    !Locals
+    integer :: maxit, x_c, max_ind, left_loc, right_loc
+    real(8) :: tol, x_val, max_val, temp, x1, f1
+    integer :: nx
+    real(8), allocatable :: x_grid(:)
+  
+    ! Assign default value to maxit if not defined by user
+    if (present(mymaxit)) then
+        maxit = mymaxit
+    else
+        maxit = 1000
+    end if
+    
+    ! Assign default value to tol if not defined by user
+    if (present(mytol)) then
+        tol = mytol
+    else
+        tol = 1.0d-6
+    end if
+    
+    ! Assign default value to nx if not defined by user
+    if (present(mynx)) then
+        nx = max(mynx,2)
+    else
+        nx = 100
+    end if
+    
+    ! Preliminary step: define the grid
+    allocate(x_grid(nx))
+    x_grid = linspace(a,b,nx)
+    
+    ! First step: grid search
+    max_val = -huge(0d0)
+    max_ind = 1
+    do x_c = 1,nx
+        x_val = x_grid(x_c)
+        temp  = f(x_val)
+        if (temp>max_val) then
+            max_val = temp
+            max_ind = x_c
+        endif
+    enddo
+    
+    ! Second step: find the interval that brackets the true maximum
+    left_loc  = max(max_ind-1,1)
+    right_loc = min(max_ind+1,nx)
+    
+    ! Last step: call golden_method section search 
+    call golden_method(f, x_grid(left_loc), x_grid(right_loc), x1, f1, tol, maxit)
+    
+    ! Assign outputs
+    xmax = x1 ! arg max
+    fmax = f1 ! f(arg max)
+    
+    end subroutine max_nonconvex
+    !===============================================================================!
+    
     FUNCTION rtbis(func,x1,x2,xacc,MAXIT)
     !-------------------------------------------------------------!
     ! DESCRIPTION:
